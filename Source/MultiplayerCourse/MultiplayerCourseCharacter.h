@@ -5,11 +5,18 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Abilities/GameplayAbility.h"
+#include "AbilitySystemInterface.h"
 #include "MultiplayerCourseCharacter.generated.h"
 
+class UAG_AbilitySystemComponentBase;
+class UAG_AttributeSetBase;
+
+class UGameplayEffect;
+class UGameplayAbility;
 
 UCLASS(config=Game)
-class AMultiplayerCourseCharacter : public ACharacter
+class AMultiplayerCourseCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -40,7 +47,9 @@ class AMultiplayerCourseCharacter : public ACharacter
 public:
 	AMultiplayerCourseCharacter();
 	
+	bool ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> Effect, FGameplayEffectContextHandle InEffectContext);
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 protected:
 
 	/** Called for movement input */
@@ -51,6 +60,29 @@ protected:
 			
 
 protected:
+
+	void InitializeAttributes();
+	void GiveAbilities();
+	void ApplyStartupEffects();
+
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="GAS")
+	TSubclassOf<UGameplayEffect> DefaultAttributeSet;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="GAS")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="GAS")
+	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
+
+	UPROPERTY(EditDefaultsOnly)
+	UAG_AbilitySystemComponentBase* AbilitySystemComponent;
+
+	UPROPERTY(Transient)
+	UAG_AttributeSetBase* AttributeSet;
+	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	

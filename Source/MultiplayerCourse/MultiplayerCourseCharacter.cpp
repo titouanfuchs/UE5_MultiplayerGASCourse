@@ -9,6 +9,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySys/Attributes/AG_AttributeSetBase.h"
+#include "AbilitySys/Components/AG_AbilitySystemComponentBase.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,8 +51,35 @@ AMultiplayerCourseCharacter::AMultiplayerCourseCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	//Ability SYstem
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAG_AbilitySystemComponentBase>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	AttributeSet = CreateDefaultSubobject<UAG_AttributeSetBase>(TEXT("AttributeSet"));
+	
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+}
+
+bool AMultiplayerCourseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> Effect,
+	FGameplayEffectContextHandle InEffectContext)
+{
+	if (!Effect.Get()) {return false;}
+
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(Effect, 1, InEffectContext);
+	if (!SpecHandle.IsValid()) {return false;}
+
+	FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+
+	return ActiveGEHandle.IsValid();
+	
+}
+
+UAbilitySystemComponent* AMultiplayerCourseCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 void AMultiplayerCourseCharacter::BeginPlay()
@@ -122,6 +153,63 @@ void AMultiplayerCourseCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AMultiplayerCourseCharacter::InitializeAttributes()
+{
+	if (!(GetLocalRole() == ROLE_Authority && DefaultAttributeSet && AttributeSet))
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	ApplyGameplayEffectToSelf(DefaultAttributeSet, EffectContext);
+}
+
+void AMultiplayerCourseCharacter::GiveAbilities()
+{
+	if (!(HasAuthority() && AbilitySystemComponent)) {return;}
+
+	for (auto DefaultAbility:DefaultAbilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(DefaultAbility));
+	}
+}
+
+void AMultiplayerCourseCharacter::ApplyStartupEffects()
+{
+	if (!(GetLocalRole() == ROLE_Authority && DefaultAttributeSet && AttributeSet))
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	for (auto CharacterEffect:DefaultEffects)
+	{
+		ApplyGameplayEffectToSelf(CharacterEffect, EffectContext);
+	}
+}
+
+void AMultiplayerCourseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	InitializeAttributes();
+	GiveAbilities();
+	ApplyStartupEffects();
+}
+
+void AMultiplayerCourseCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	InitializeAttributes();
 }
 
 
