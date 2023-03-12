@@ -180,7 +180,7 @@ void AMultiplayerCourseCharacter::GiveAbilities()
 
 void AMultiplayerCourseCharacter::ApplyStartupEffects()
 {
-	if (!(GetLocalRole() == ROLE_Authority && DefaultAttributeSet && AttributeSet))
+	if (!(GetLocalRole() == ROLE_Authority))
 	{
 		return;
 	}
