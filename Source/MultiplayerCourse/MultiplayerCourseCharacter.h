@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemInterface.h"
+#include "ActionGameTypes.h"
 #include "MultiplayerCourseCharacter.generated.h"
 
 class UAG_AbilitySystemComponentBase;
@@ -46,12 +47,33 @@ class AMultiplayerCourseCharacter : public ACharacter, public IAbilitySystemInte
 
 public:
 	AMultiplayerCourseCharacter();
+
+	virtual void PostInitializeComponents() override;
 	
 	bool ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> Effect, FGameplayEffectContextHandle InEffectContext);
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UFUNCTION(BlueprintCallable)
+	FCharacterData GetCharacterData() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetCharacterData(const FCharacterData& InCharacterData);
+
+	
 protected:
 
+	UPROPERTY(ReplicatedUsing=OnRep_CharacterData)
+	FCharacterData CharacterData;
+
+	UFUNCTION()
+	void OnRep_CharacterData();
+
+	virtual void InitFromCharacterData(const FCharacterData& InCharacterData, bool bFromReplication = false);
+
+	UPROPERTY(EditDefaultsOnly)
+	class UCharacterDataAsset* CharacterDataAsset;
+	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -60,22 +82,11 @@ protected:
 			
 
 protected:
-
-	void InitializeAttributes();
 	void GiveAbilities();
 	void ApplyStartupEffects();
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="GAS")
-	TSubclassOf<UGameplayEffect> DefaultAttributeSet;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="GAS")
-	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="GAS")
-	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
 
 	UPROPERTY(EditDefaultsOnly)
 	UAG_AbilitySystemComponentBase* AbilitySystemComponent;

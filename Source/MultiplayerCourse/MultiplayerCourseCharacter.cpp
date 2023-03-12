@@ -13,6 +13,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySys/Attributes/AG_AttributeSetBase.h"
 #include "AbilitySys/Components/AG_AbilitySystemComponentBase.h"
+#include "DataAssets/CharacterDataAsset.h"
+#include "Net/UnrealNetwork.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,8 +65,17 @@ AMultiplayerCourseCharacter::AMultiplayerCourseCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
+void AMultiplayerCourseCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (!IsValid(CharacterDataAsset)) {return;}
+
+	SetCharacterData(CharacterDataAsset->CharacterData);
+}
+
 bool AMultiplayerCourseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> Effect,
-	FGameplayEffectContextHandle InEffectContext)
+                                                            FGameplayEffectContextHandle InEffectContext)
 {
 	if (!Effect.Get()) {return false;}
 
@@ -80,6 +91,18 @@ bool AMultiplayerCourseCharacter::ApplyGameplayEffectToSelf(TSubclassOf<UGamepla
 UAbilitySystemComponent* AMultiplayerCourseCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+FCharacterData AMultiplayerCourseCharacter::GetCharacterData() const
+{
+	return CharacterData;
+}
+
+void AMultiplayerCourseCharacter::SetCharacterData(const FCharacterData& InCharacterData)
+{
+	CharacterData = InCharacterData;
+
+	InitFromCharacterData(CharacterData);
 }
 
 void AMultiplayerCourseCharacter::BeginPlay()
@@ -119,6 +142,16 @@ void AMultiplayerCourseCharacter::SetupPlayerInputComponent(class UInputComponen
 
 }
 
+void AMultiplayerCourseCharacter::OnRep_CharacterData()
+{
+	InitFromCharacterData(CharacterData, true);
+}
+
+void AMultiplayerCourseCharacter::InitFromCharacterData(const FCharacterData& InCharacterData, bool bFromReplication)
+{
+	
+}
+
 void AMultiplayerCourseCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -155,24 +188,11 @@ void AMultiplayerCourseCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AMultiplayerCourseCharacter::InitializeAttributes()
-{
-	if (!(GetLocalRole() == ROLE_Authority && DefaultAttributeSet && AttributeSet))
-	{
-		return;
-	}
-
-	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-	EffectContext.AddSourceObject(this);
-
-	ApplyGameplayEffectToSelf(DefaultAttributeSet, EffectContext);
-}
-
 void AMultiplayerCourseCharacter::GiveAbilities()
 {
 	if (!(HasAuthority() && AbilitySystemComponent)) {return;}
 
-	for (auto DefaultAbility:DefaultAbilities)
+	for (auto DefaultAbility:CharacterData.Abilities)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(DefaultAbility));
 	}
@@ -188,7 +208,7 @@ void AMultiplayerCourseCharacter::ApplyStartupEffects()
 	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	for (auto CharacterEffect:DefaultEffects)
+	for (auto CharacterEffect:CharacterData.Effects)
 	{
 		ApplyGameplayEffectToSelf(CharacterEffect, EffectContext);
 	}
@@ -199,7 +219,6 @@ void AMultiplayerCourseCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	InitializeAttributes();
 	GiveAbilities();
 	ApplyStartupEffects();
 }
@@ -209,9 +228,13 @@ void AMultiplayerCourseCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 
 	AbilitySystemComponent->InitAbilityActorInfo(this,this);
-	InitializeAttributes();
 }
 
+void AMultiplayerCourseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(AMultiplayerCourseCharacter, CharacterData);
+}
 
 
