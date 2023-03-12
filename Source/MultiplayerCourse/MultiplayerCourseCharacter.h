@@ -46,7 +46,7 @@ class AMultiplayerCourseCharacter : public ACharacter, public IAbilitySystemInte
 	class UInputAction* LookAction;
 
 public:
-	AMultiplayerCourseCharacter();
+	AMultiplayerCourseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PostInitializeComponents() override;
 	

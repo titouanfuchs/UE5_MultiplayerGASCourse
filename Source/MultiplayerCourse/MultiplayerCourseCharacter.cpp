@@ -13,16 +13,19 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySys/Attributes/AG_AttributeSetBase.h"
 #include "AbilitySys/Components/AG_AbilitySystemComponentBase.h"
+#include "Actors/Components/AG_CharacterMovementComponent.h"
 #include "DataAssets/CharacterDataAsset.h"
 #include "Net/UnrealNetwork.h"
+#include "Actors/Components/AG_CharacterMovementComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 // AMultiplayerCourseCharacter
 
-AMultiplayerCourseCharacter::AMultiplayerCourseCharacter()
+AMultiplayerCourseCharacter::AMultiplayerCourseCharacter(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UAG_CharacterMovementComponent>(CharacterMovementComponentName))
 {
-	// Set size for collision capsule
+		// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
 	// Don't rotate when the controller rotates. Let that just affect the camera.
@@ -64,6 +67,7 @@ AMultiplayerCourseCharacter::AMultiplayerCourseCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
+
 
 void AMultiplayerCourseCharacter::PostInitializeComponents()
 {
