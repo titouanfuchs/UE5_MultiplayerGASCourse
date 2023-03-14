@@ -79,9 +79,10 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
 
-protected:
+	void OnJumpStarted(FInputActionValue& Value);
+	void OnJumpEnded(FInputActionValue& Value);
+	
 	void GiveAbilities();
 	void ApplyStartupEffects();
 
@@ -99,6 +100,9 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+	UPROPERTY(EditDefaultsOnly, Category="GAS")
+	FGameplayTag JumpEventTag;
 
 public:
 	/** Returns CameraBoom subobject **/

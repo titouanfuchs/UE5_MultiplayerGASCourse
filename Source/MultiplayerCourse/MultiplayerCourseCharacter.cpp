@@ -192,6 +192,19 @@ void AMultiplayerCourseCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void AMultiplayerCourseCharacter::OnJumpStarted(FInputActionValue& Value)
+{
+	FGameplayEventData Payload;
+	Payload.Instigator = this;
+	Payload.EventTag = JumpEventTag;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, JumpEventTag, Payload);
+}
+
+void AMultiplayerCourseCharacter::OnJumpEnded(FInputActionValue& Value)
+{
+}
+
 void AMultiplayerCourseCharacter::GiveAbilities()
 {
 	if (!(HasAuthority() && AbilitySystemComponent)) {return;}
