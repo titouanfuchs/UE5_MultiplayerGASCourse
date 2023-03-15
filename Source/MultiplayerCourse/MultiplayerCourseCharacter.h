@@ -80,7 +80,7 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
-	void OnJumpStarted(FInputActionValue& Value);
+	void OnJumpStarted();
 	void OnJumpEnded(FInputActionValue& Value);
 	
 	void GiveAbilities();

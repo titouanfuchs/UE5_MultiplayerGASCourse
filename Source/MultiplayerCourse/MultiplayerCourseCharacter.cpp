@@ -133,7 +133,7 @@ void AMultiplayerCourseCharacter::SetupPlayerInputComponent(class UInputComponen
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMultiplayerCourseCharacter::OnJumpStarted);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		//Moving
@@ -192,7 +192,7 @@ void AMultiplayerCourseCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AMultiplayerCourseCharacter::OnJumpStarted(FInputActionValue& Value)
+void AMultiplayerCourseCharacter::OnJumpStarted()
 {
 	FGameplayEventData Payload;
 	Payload.Instigator = this;
