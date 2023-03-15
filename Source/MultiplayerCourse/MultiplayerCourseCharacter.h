@@ -73,6 +73,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UCharacterDataAsset* CharacterDataAsset;
+
+
+	virtual void Landed(const FHitResult& Hit) override;
 	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -81,7 +84,7 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void OnJumpStarted();
-	void OnJumpEnded(FInputActionValue& Value);
+	void OnJumpEnded();
 	
 	void GiveAbilities();
 	void ApplyStartupEffects();
@@ -103,6 +106,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="GAS")
 	FGameplayTag JumpEventTag;
+
+	UPROPERTY(EditDefaultsOnly, Category="GAS")
+	FGameplayTagContainer InAirTag;
 
 public:
 	/** Returns CameraBoom subobject **/

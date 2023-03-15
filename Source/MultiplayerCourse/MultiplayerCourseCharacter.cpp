@@ -134,7 +134,7 @@ void AMultiplayerCourseCharacter::SetupPlayerInputComponent(class UInputComponen
 		
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMultiplayerCourseCharacter::OnJumpStarted);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AMultiplayerCourseCharacter::OnJumpEnded);
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMultiplayerCourseCharacter::Move);
@@ -154,6 +154,14 @@ void AMultiplayerCourseCharacter::OnRep_CharacterData()
 void AMultiplayerCourseCharacter::InitFromCharacterData(const FCharacterData& InCharacterData, bool bFromReplication)
 {
 	
+}
+
+void AMultiplayerCourseCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	if (!AbilitySystemComponent){return;}
+
+	AbilitySystemComponent->RemoveActiveEffectsWithTags(InAirTag);
 }
 
 void AMultiplayerCourseCharacter::Move(const FInputActionValue& Value)
@@ -192,6 +200,8 @@ void AMultiplayerCourseCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+
+
 void AMultiplayerCourseCharacter::OnJumpStarted()
 {
 	FGameplayEventData Payload;
@@ -201,8 +211,9 @@ void AMultiplayerCourseCharacter::OnJumpStarted()
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, JumpEventTag, Payload);
 }
 
-void AMultiplayerCourseCharacter::OnJumpEnded(FInputActionValue& Value)
+void AMultiplayerCourseCharacter::OnJumpEnded()
 {
+	StopJumping();
 }
 
 void AMultiplayerCourseCharacter::GiveAbilities()
