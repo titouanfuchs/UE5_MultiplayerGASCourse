@@ -141,9 +141,7 @@ void AMultiplayerCourseCharacter::SetupPlayerInputComponent(class UInputComponen
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMultiplayerCourseCharacter::Look);
-
 	}
-
 }
 
 void AMultiplayerCourseCharacter::OnRep_CharacterData()

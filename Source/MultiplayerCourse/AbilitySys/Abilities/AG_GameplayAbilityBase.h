@@ -13,5 +13,16 @@ UCLASS()
 class MULTIPLAYERCOURSE_API UAG_GameplayAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()
-	
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly, Category="Effects")
+	TArray<TSubclassOf<UGameplayEffect>> OnGoingEffectsToApply;
+
+	UPROPERTY(EditDefaultsOnly, Category="Effects")
+	TArray<TSubclassOf<UGameplayEffect>> OnGoingEffectsToRemove;
+
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
 };

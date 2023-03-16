@@ -53,7 +53,7 @@ void UAG_GameplayAbilityJump::ActivateAbility(const FGameplayAbilitySpecHandle H
 
 		FActiveGameplayEffectHandle ActiveGEHandle = AbilityComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
-		if (ActiveGEHandle.IsValid())
+		if (!ActiveGEHandle.IsValid())
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed to apply JumpEffect to %s"), *GetNameSafe(Character));
 		}
