@@ -40,22 +40,9 @@ void UAG_GameplayAbilityJump::ActivateAbility(const FGameplayAbilitySpecHandle H
 		return;
 	}
 
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
 	ACharacter* Character = CastChecked<ACharacter>(ActorInfo->AvatarActor.Get(), ECastCheckedType::NullAllowed);
 	
 	Character->Jump();
-
-	if (UAbilitySystemComponent* AbilityComponent = ActorInfo->AbilitySystemComponent.Get())
-	{
-		FGameplayEffectContextHandle EffectContext = AbilityComponent->MakeEffectContext();
-		FGameplayEffectSpecHandle SpecHandle = AbilityComponent->MakeOutgoingSpec(JumpEffect, 1, EffectContext);
-
-		if (!SpecHandle.IsValid()){return;}
-
-		FActiveGameplayEffectHandle ActiveGEHandle = AbilityComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-
-		if (!ActiveGEHandle.IsValid())
-		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to apply JumpEffect to %s"), *GetNameSafe(Character));
-		}
-	}
 }

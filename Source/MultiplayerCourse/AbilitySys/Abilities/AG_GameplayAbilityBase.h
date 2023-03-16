@@ -6,6 +6,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "AG_GameplayAbilityBase.generated.h"
 
+class AMultiplayerCourseCharacter;
 /**
  * 
  */
@@ -22,7 +23,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Effects")
 	TArray<TSubclassOf<UGameplayEffect>> OnGoingEffectsToRemove;
 
+	TArray<FActiveGameplayEffectHandle> RemoveOnEndEffectHandles;
+
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	AMultiplayerCourseCharacter* GetCharacterFromActorInfo() const;
 };
