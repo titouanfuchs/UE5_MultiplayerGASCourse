@@ -37,6 +37,9 @@ class AMultiplayerCourseCharacter : public ACharacter, public IAbilitySystemInte
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* JumpAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ThrowBulletAction;
+	
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
@@ -61,6 +64,8 @@ public:
 	void SetCharacterData(const FCharacterData& InCharacterData);
 
 	
+	void ThrowBullet();
+	
 protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_CharacterData)
@@ -82,7 +87,10 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
+	
+	void OnThrowBullet();
+	void OnThrowBulletEnded();
+	
 	void OnJumpStarted();
 	void OnJumpEnded();
 	
@@ -97,7 +105,6 @@ protected:
 
 	UPROPERTY(Transient)
 	UAG_AttributeSetBase* AttributeSet;
-	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -108,7 +115,19 @@ protected:
 	FGameplayTag JumpEventTag;
 
 	UPROPERTY(EditDefaultsOnly, Category="GAS")
+	FGameplayTag ThrowBulletTag;
+
+	UPROPERTY(EditDefaultsOnly, Category="GAS")
 	FGameplayTagContainer InAirTag;
+
+	UPROPERTY(EditDefaultsOnly, Category="GAS")
+	FGameplayTagContainer ThrowingBulletTag;
+
+	UPROPERTY(EditDefaultsOnly)
+	USceneComponent* BulletSpawnPoint;
+
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	TSubclassOf<AActor> Bullet;
 
 public:
 	/** Returns CameraBoom subobject **/

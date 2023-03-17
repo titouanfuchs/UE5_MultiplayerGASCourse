@@ -27,7 +27,10 @@ AMultiplayerCourseCharacter::AMultiplayerCourseCharacter(const FObjectInitialize
 {
 		// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
+	BulletSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("BulletSpawnPoint"));
+	BulletSpawnPoint->SetupAttachment(RootComponent);
+	
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -136,6 +139,9 @@ void AMultiplayerCourseCharacter::SetupPlayerInputComponent(class UInputComponen
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMultiplayerCourseCharacter::OnJumpStarted);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AMultiplayerCourseCharacter::OnJumpEnded);
 
+		EnhancedInputComponent->BindAction(ThrowBulletAction, ETriggerEvent::Triggered, this, &AMultiplayerCourseCharacter::OnThrowBullet);
+		EnhancedInputComponent->BindAction(ThrowBulletAction, ETriggerEvent::Completed, this, &AMultiplayerCourseCharacter::OnThrowBulletEnded);
+
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMultiplayerCourseCharacter::Move);
 
@@ -198,6 +204,30 @@ void AMultiplayerCourseCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+
+void AMultiplayerCourseCharacter::OnThrowBullet()
+{
+	FGameplayEventData Payload;
+	Payload.Instigator = this;
+	Payload.EventTag = ThrowBulletTag;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, ThrowBulletTag, Payload);
+}
+
+void AMultiplayerCourseCharacter::OnThrowBulletEnded()
+{
+	AbilitySystemComponent->RemoveActiveEffectsWithTags(ThrowingBulletTag);
+}
+
+void AMultiplayerCourseCharacter::ThrowBullet()
+{
+	if (!Bullet && !BulletSpawnPoint) return;
+
+	FVector SpawnLocation = BulletSpawnPoint->GetComponentLocation();
+	FRotator SpawnRotation = BulletSpawnPoint->GetComponentRotation();
+	
+	GetWorld()->SpawnActor(Bullet, &SpawnLocation, &SpawnRotation);
+}
 
 
 void AMultiplayerCourseCharacter::OnJumpStarted()
